@@ -1,6 +1,7 @@
 //导演类:控制游戏的逻辑
 
 import { DataStore } from "./base/DataStore";
+import { score } from "./player/Score";
 import { DownPipe } from "./runtime/DownPipe";
 import { UpPipe } from "./runtime/UpPipe";
 
@@ -49,8 +50,7 @@ export class Director{
     //设置水管初始位置的高度范围
     let minTop=this.dataStore.canvas.height/9;//最小高度
     let maxTop=this.dataStore.canvas.height/5;//最大高度
-    // let top=minTop+Math.random()*(minTop+maxTop);
-    let top=100;
+    let top=minTop+Math.random()*(minTop+maxTop);
     //创建一组上下水管,并将其存入变量池的pipes数组中
     this.dataStore.get('pipes').push(new UpPipe(top));
     this.dataStore.get('pipes').push(new DownPipe(top));
@@ -62,6 +62,7 @@ export class Director{
     let pipes=this.dataStore.get('pipes');
     let birds=this.dataStore.get('birds');
     let land=this.dataStore.get('land');
+    let score=this.dataStore.get('score');
     //撞天(小鸟的y坐标小于0),撞地(小鸟的y坐标+自身的高大于地板的位置)
     if(birds.birdsY[0]<0 || birds.birdsY[0]+birds.clippingHeight[0]>land.y){
       this.isGameOver=true;
@@ -91,6 +92,14 @@ export class Director{
       }
     }
 
+    //判断有没有越过水管
+    if(birds.birdsX[0]>pipes[0].x+pipes[0].w && score.canAdd){
+      //小鸟的左边超过水管的右边
+      score.scoreNumber++;
+      //加了一次分之后就不能再继续加分
+      score.canAdd=false;
+    }
+
   }
 
   //程序运行的方法
@@ -109,6 +118,8 @@ export class Director{
         //一次删除一组水管,shift删除两次
         pipes.shift();
         pipes.shift();
+        //修改可以加分选项
+        this.dataStore.get('score').canAdd=true;
       }
       //添加下一组水管:当前只有一组水管,且这组水管已经越过中间线
       if(pipes[0].x < this.dataStore.canvas.width/2 && pipes.length==2){
@@ -120,10 +131,22 @@ export class Director{
       })
 
       this.dataStore.get('birds').draw();
+      this.dataStore.get('score').draw();
       this.dataStore.get('land').draw();
       this.id=requestAnimationFrame(()=>this.run());
     }else{//游戏结束
       cancelAnimationFrame(this.id);
+      //重新绘制图片,解决贴图错乱问题
+      this.dataStore.get('background').draw();
+      this.dataStore.get('pipes').forEach(v=>{
+        v.draw();
+      })
+      this.dataStore.get('birds').draw();
+      this.dataStore.get('score').draw();
+      this.dataStore.get('land').draw();
+      this.dataStore.get('startButton').draw();
+      //清空游戏数据
+      this.dataStore.destroy();
     }
     
   }

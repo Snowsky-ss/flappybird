@@ -2,8 +2,11 @@ import { DataStore } from "./js/base/DataStore";
 //游戏开始的入口,初始化整个游戏的元素
 
 import { ResourceLoader } from "./js/base/ResourceLoader";
+import { Sprite } from "./js/base/Sprite";
 import { Director } from "./js/Director";
 import { Birds } from "./js/player/Birds";
+import { score } from "./js/player/Score";
+import { StartButton } from "./js/player/StartButton";
 import { Background } from "./js/runtime/Background";
 import { Land } from "./js/runtime/Land";
 
@@ -36,6 +39,8 @@ export class Main{//定义Main类
 
   //初始化游戏数据
   init(){
+    //游戏开始
+    this.director.isGameOver=false;
     //将游戏数据初始化,并保存到变量池中
     //使用变量池的put方法保存,因为这些数据会在游戏结束后被销毁
     this.store
@@ -44,6 +49,8 @@ export class Main{//定义Main类
       //pipes是多个水管,每次出现时都是一组一组出现
       .put('pipes',[])
       .put('birds',new Birds())
+      .put('startButton',new StartButton())
+      .put('score',new score);
 
     //先调用一次创建水管的方法
     this.director.createPipes();
@@ -58,10 +65,33 @@ export class Main{//定义Main类
     //手机报错
     // this.canvas.addEventListener('touchstart',()=>{
       //需要使用微信提供的api
-    wx.onTouchStart(()=>{
-      if(this.director.isGameOver){
-        //游戏结束,点击重新开始
+    wx.onTouchStart(e=>{
+      let {clientX,clientY}=e.touches[0];
 
+      if(this.director.isGameOver){
+        //游戏结束,点击重新开始按钮,游戏重启
+        let land=Sprite.getImage('land');//地板图
+        let btn=Sprite.getImage('startButton');//开始按钮
+        //定义重新开始按钮的矩形图
+
+        //矩形的起点x坐标
+        let startX=(this.canvas.width - btn.width)/2;
+        //矩形起点的y坐标
+        let startY=(this.canvas.height - land.height - btn.height)/2;
+        //矩形终点x坐标
+        let endX=startX + btn.width;
+        //矩形终点y坐标
+        let endY=startY + btn.height;
+        //判断触摸点是否在该矩形范围内
+        if(
+          clientX>startX &&
+          clientX<endX &&
+          clientY>startY &&
+          clientY<endY
+        ){
+          this.init();
+        }
+  
       }else{
         //游戏进行中,点击小鸟向上飞
         this.director.birdsUp();
