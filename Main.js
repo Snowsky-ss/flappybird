@@ -4,11 +4,13 @@ import { DataStore } from "./js/base/DataStore";
 import { ResourceLoader } from "./js/base/ResourceLoader";
 import { Sprite } from "./js/base/Sprite";
 import { Director } from "./js/Director";
+import { playbgm } from "./js/music";
 import { Birds } from "./js/player/Birds";
 import { score } from "./js/player/Score";
 import { StartButton } from "./js/player/StartButton";
 import { Background } from "./js/runtime/Background";
 import { Land } from "./js/runtime/Land";
+import wxapi from "./js/wxApi";
 
 export class Main{//定义Main类
   constructor(){//构造函数(初始化数据 new的时候调用该方法)
@@ -33,6 +35,12 @@ export class Main{//定义Main类
     this.store.res=map;
     this.store.canvas=this.canvas;
     this.store.ctx=this.ctx;
+    //调用背景音乐
+    playbgm();
+    // wxapi.createUserInfoButton();
+    // wxapi.getUserInfo();
+    wxapi.getTelInfo();
+    
     //初始化游戏的方法
     this.init();
   }
@@ -90,6 +98,8 @@ export class Main{//定义Main类
           clientY<endY
         ){
           this.init();
+        }else{
+          // wxapi.showKeyboard();
         }
   
       }else{

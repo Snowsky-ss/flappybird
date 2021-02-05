@@ -98,6 +98,7 @@ export class Director{
       score.scoreNumber++;
       //加了一次分之后就不能再继续加分
       score.canAdd=false;
+      go();
     }
 
   }
